@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net"
 	"os"
 	"regexp"
 	"strconv"
@@ -17,18 +16,18 @@ import (
 	"net/http"
 	"net/url"
 
-	"golang.org/x/crypto/ssh"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var apiHost string
 
-type ViaSSHDialer struct {
-	client *ssh.Client
-}
+//type ViaSSHDialer struct {
+//	client *ssh.Client
+//}
 
-func (self *ViaSSHDialer) Dial(addr string) (net.Conn, error) {
-	return self.client.Dial("tcp", addr)
-}
+//func (self *ViaSSHDialer) Dial(addr string) (net.Conn, error) {
+//	return self.client.Dial("tcp", addr)
+//}
 
 type RespLanggengGetCmpgnByCode struct {
 	Campaigns []struct {
