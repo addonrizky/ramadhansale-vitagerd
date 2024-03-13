@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -294,8 +295,8 @@ func getCurrentIteration() (int, error) {
 	// if it was successful in reading the file then
 	// print out the contents as a string
 	iterationRaw := string(data)
-	iteration := iterationRaw[0:len(iterationRaw)]
-	iterationNum, err := strconv.Atoi(iteration)
+	iteration := iterationRaw[0:len([]rune(iterationRaw))]
+	iterationNum, err := strconv.Atoi(clearString(iteration))
 	if err != nil {
 		fmt.Println("fail to parse string into inteeger iteration")
 		return 0, err
@@ -323,4 +324,10 @@ func nextIter(iterationNum int) (int, error) {
 
 func random(min int, max int) int {
 	return rand.Intn(max-min) + min
+}
+
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
+func clearString(str string) string {
+	return nonAlphanumericRegex.ReplaceAllString(str, "")
 }
