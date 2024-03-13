@@ -16,9 +16,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 )
 
 var apiHost string
@@ -67,14 +65,14 @@ func main() {
 
 	apiHost = os.Getenv("API_LANGGENG_URL")
 
-	sshHost := os.Getenv("SSH_CRMLITE_HOST") // SSH Server Hostname/IP
-	sshPort := os.Getenv("SSH_CRMLITE_PORT") // SSH Port
-	sshUser := os.Getenv("SSH_CRMLITE_USER") // SSH Username
-	sshPass := os.Getenv("SSH_CRMLITE_PASS") // Empty string for no password
-	dbUser := os.Getenv("CRMLITE_DB_USER")   // DB username
-	dbPass := os.Getenv("CRMLITE_DB_PASS")   // DB Password
-	dbHost := os.Getenv("CRMLITE_DB_HOST")   // DB Hostname/IP
-	dbName := os.Getenv("CRMLITE_DB_NAME")   // Database name
+	//sshHost := os.Getenv("SSH_CRMLITE_HOST") // SSH Server Hostname/IP
+	//sshPort := os.Getenv("SSH_CRMLITE_PORT") // SSH Port
+	//sshUser := os.Getenv("SSH_CRMLITE_USER") // SSH Username
+	//sshPass := os.Getenv("SSH_CRMLITE_PASS") // Empty string for no password
+	dbUser := os.Getenv("CRMLITE_DB_USER") // DB username
+	dbPass := os.Getenv("CRMLITE_DB_PASS") // DB Password
+	dbHost := os.Getenv("CRMLITE_DB_HOST") // DB Hostname/IP
+	dbName := os.Getenv("CRMLITE_DB_NAME") // Database name
 
 	limitProcessPerExecutionRaw := os.Getenv("LIMIT_PROCESS_PER_EXECUTION")
 	limitProcessPerExecution, err := strconv.Atoi(limitProcessPerExecutionRaw)
@@ -83,50 +81,50 @@ func main() {
 		return
 	}
 
-	var agentClient agent.Agent
-	// Establish a connection to the local ssh-agent
-	conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
-	if err != nil {
-		fmt.Println("error on dialing ssh unix : ", err)
-		return
-	}
-	defer conn.Close()
-
-	// Create a new instance of the ssh agent
-	agentClient = agent.NewClient(conn)
-
-	// The client configuration with configuration option to use the ssh-agent
-	sshConfig := &ssh.ClientConfig{
-		User:            sshUser,
-		Auth:            []ssh.AuthMethod{},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// When the agentClient connection succeeded, add them as AuthMethod
-	if agentClient == nil {
-		fmt.Println("agent client connecton not succes")
-		return
-	}
-
-	sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeysCallback(agentClient.Signers))
-	// When there's a non empty password add the password AuthMethod
-	if sshPass != "" {
-		sshConfig.Auth = append(sshConfig.Auth, ssh.PasswordCallback(func() (string, error) {
-			return sshPass, nil
-		}))
-	}
-
-	// Connect to the SSH Server
-	sshcon, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", sshHost, sshPort), sshConfig)
-	if err != nil {
-		fmt.Println("fail on connect to SSH Server : ", err)
-		return
-	}
-
-	defer sshcon.Close()
-
-	// Now we register the ViaSSHDialer with the ssh connection as a parameter
-	mysql.RegisterDial("mysql+tcp", (&ViaSSHDialer{sshcon}).Dial)
+	//var agentClient agent.Agent
+	//// Establish a connection to the local ssh-agent
+	//conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	//if err != nil {
+	//	fmt.Println("error on dialing ssh unix : ", err)
+	//	return
+	//}
+	//defer conn.Close()
+	//
+	//// Create a new instance of the ssh agent
+	//agentClient = agent.NewClient(conn)
+	//
+	//// The client configuration with configuration option to use the ssh-agent
+	//sshConfig := &ssh.ClientConfig{
+	//	User:            sshUser,
+	//	Auth:            []ssh.AuthMethod{},
+	//	HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	//}
+	//
+	//// When the agentClient connection succeeded, add them as AuthMethod
+	//if agentClient == nil {
+	//	fmt.Println("agent client connecton not succes")
+	//	return
+	//}
+	//
+	//sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeysCallback(agentClient.Signers))
+	//// When there's a non empty password add the password AuthMethod
+	//if sshPass != "" {
+	//	sshConfig.Auth = append(sshConfig.Auth, ssh.PasswordCallback(func() (string, error) {
+	//		return sshPass, nil
+	//	}))
+	//}
+	//
+	//// Connect to the SSH Server
+	//sshcon, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", sshHost, sshPort), sshConfig)
+	//if err != nil {
+	//	fmt.Println("fail on connect to SSH Server : ", err)
+	//	return
+	//}
+	//
+	//defer sshcon.Close()
+	//
+	//// Now we register the ViaSSHDialer with the ssh connection as a parameter
+	//mysql.RegisterDial("mysql+tcp", (&ViaSSHDialer{sshcon}).Dial)
 
 	// And now we can use our new driver with the regular mysql connection string tunneled through the SSH connection
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@mysql+tcp(%s)/%s", dbUser, dbPass, dbHost, dbName))
